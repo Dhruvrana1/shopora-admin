@@ -1,0 +1,278 @@
+
+.admin-login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #fff;
+  color: #111116;
+  font-family: "Inter", sans-serif;
+}
+
+.login-brand-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  padding: 42px 8%;
+  overflow: hidden;
+  background: #293cff;
+  color: white;
+  border-right: 3px solid #111116;
+}
+
+.login-brand {
+  width: fit-content;
+  color: white;
+  text-decoration: none;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.login-brand-dot {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-left: 5px;
+  background: #ff5722;
+  border: 2px solid #111116;
+  border-radius: 50%;
+}
+
+.brand-message {
+  max-width: 530px;
+  margin: 50px 0;
+}
+
+.brand-kicker,
+.form-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.brand-kicker {
+  display: inline-block;
+  padding: 9px 12px;
+  background: #ffe66d;
+  border: 2px solid #111116;
+  color: #111116;
+}
+
+.brand-message h1 {
+  margin: 25px 0 18px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(55px, 7vw, 96px);
+  font-weight: 900;
+  line-height: .91;
+  letter-spacing: -2px;
+}
+
+.brand-message h1 span {
+  color: #ffe66d;
+}
+
+.brand-message p {
+  max-width: 350px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #e4e6ff;
+}
+
+.brand-stamp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  padding: 13px 17px;
+  background: #ffe66d;
+  color: #111116;
+  border: 2px solid #111116;
+  box-shadow: 5px 5px 0 #111116;
+}
+
+.brand-stamp span {
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: 1px;
+}
+
+.login-form-panel {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 55px clamp(24px, 7vw, 100px) 25px;
+}
+
+.login-form-wrap {
+  width: 100%;
+  max-width: 430px;
+  margin: auto;
+}
+
+.form-kicker {
+  color: #293cff;
+}
+
+.login-form-wrap h2 {
+  margin: 12px 0 8px;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: clamp(38px, 4vw, 54px);
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.login-form-wrap h2 span {
+  color: #ff5722;
+}
+
+.form-description {
+  margin: 0 0 30px;
+  color: #777783;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.login-form-wrap form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form-wrap label {
+  margin: 17px 0 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1.5px solid #cfcfda;
+  border-radius: 7px;
+  color: #777783;
+  background: white;
+}
+
+.login-input-wrap:focus-within {
+  border-color: #293cff;
+  box-shadow: 0 0 0 3px #293cff1c;
+}
+
+.login-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #111116;
+  font-size: 13px;
+}
+
+.login-input-wrap input::placeholder {
+  color: #a1a1ad;
+}
+
+.login-submit {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 27px;
+  padding: 0 17px;
+  background: #293cff;
+  border: 2px solid #111116;
+  border-radius: 7px;
+  box-shadow: 4px 4px 0 #111116;
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .5px;
+}
+
+.login-submit:hover:not(:disabled) {
+  background: #1b2be8;
+  transform: translateY(-1px);
+}
+
+.login-submit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.login-error {
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid #e44736;
+  border-radius: 6px;
+  background: #fff0ed;
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.login-security {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  color: #777783;
+  font-size: 11px;
+}
+
+.login-footer {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 30px;
+  color: #858591;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.login-footer span {
+  color: #ff5722;
+}
+
+@media (max-width: 750px) {
+  .admin-login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand-panel {
+    min-height: auto;
+    padding: 25px 25px 30px;
+    border-right: 0;
+    border-bottom: 3px solid #111116;
+  }
+
+  .login-brand {
+    font-size: 35px;
+  }
+
+  .brand-message {
+    margin: 45px 0 25px;
+  }
+
+  .brand-message h1 {
+    font-size: clamp(54px, 12vw, 75px);
+  }
+
+  .brand-stamp {
+    padding: 9px 12px;
+  }
+
+  .login-form-panel {
+    min-height: auto;
+    padding: 45px 25px 25px;
+  }
+}
