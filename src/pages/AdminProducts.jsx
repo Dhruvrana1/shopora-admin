@@ -14,6 +14,11 @@ import {
 import { adminApi } from "../services/api";
 import "../App.css";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://shopora-backend-h3uj.onrender.com"
+).replace(/\/+$/, "");
+
 const initialForm = {
   category_id: "",
   name: "",
@@ -42,6 +47,19 @@ function getImageUrl(image) {
   return image.image_url || image.url || "";
 }
 
+function resolveImageUrl(value) {
+  if (!value) return "";
+  if (
+    /^https?:\/\//i.test(value) ||
+    value.startsWith("blob:") ||
+    value.startsWith("data:")
+  ) {
+    return value;
+  }
+
+  return `${API_BASE_URL}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
 function getProductImage(product) {
   const images = getProductImages(product);
   const imageUrl =
@@ -50,25 +68,35 @@ function getProductImage(product) {
     product?.thumbnail ||
     (typeof product?.image === "string" ? product.image : "");
 
-  if (!imageUrl) return "";
-
-  if (/^https?:\/\//i.test(imageUrl) || imageUrl.startsWith("blob:")) {
-    return imageUrl;
-  }
-
-  return `http://localhost:3000${
-    imageUrl.startsWith("/") ? "" : "/"
-  }${imageUrl}`;
+  return resolveImageUrl(imageUrl);
 }
 
 function getCategoryId(product) {
-  return product.category_id ?? "";
+  return product?.category_id ?? product?.categoryId ?? "";
+}
+
+function getList(data, keys = []) {
+  if (Array.isArray(data)) return data;
+
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
+    if (Array.isArray(data?.data?.[key])) return data.data[key];
+  }
+
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.products)) return data.products;
+  if (Array.isArray(data?.Product)) return data.Product;
+  if (Array.isArray(data?.data?.products)) return data.data.products;
+
+  return [];
 }
 
 function AdminProducts() {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,13 +110,15 @@ function AdminProducts() {
   const [actionError, setActionError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
 
+  const busy = saving || imageUploading || imageDeleting;
+
   async function loadProducts() {
     try {
       setLoading(true);
       setError("");
 
       const data = await adminApi("/products");
-      setProducts(Array.isArray(data.Product) ? data.Product : []);
+      setProducts(getList(data, ["Product", "products"]));
     } catch (err) {
       setError(err.message || "Unable to load products.");
     } finally {
@@ -96,8 +126,18 @@ function AdminProducts() {
     }
   }
 
+  async function loadCategories() {
+    try {
+      const data = await adminApi("/admin/categories");
+      setCategories(getList(data, ["Category", "categories", "category"]));
+    } catch (err) {
+      console.error("Unable to load categories:", err.message);
+    }
+  }
+
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   function openEditForm(product) {
@@ -123,7 +163,11 @@ function AdminProducts() {
   }
 
   function closeEditForm() {
-    if (saving || imageUploading || imageDeleting) return;
+    if (busy) return;
+
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview);
+    }
 
     setEditingProduct(null);
     setForm(initialForm);
@@ -135,11 +179,7 @@ function AdminProducts() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setForm((previous) => ({ ...previous, [name]: value }));
   }
 
   function handleProductImageSelect(event) {
@@ -182,11 +222,13 @@ function AdminProducts() {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Remove this saved image from the product? This cannot be undone."
-    );
-
-    if (!confirmed) return;
+    if (
+      !window.confirm(
+        "Remove this saved image from the product? This cannot be undone."
+      )
+    ) {
+      return;
+    }
 
     try {
       setImageDeleting(true);
@@ -234,6 +276,11 @@ function AdminProducts() {
 
     if (!editingProduct) return;
 
+    if (!form.category_id) {
+      setActionError("Please select a category.");
+      return;
+    }
+
     try {
       setSaving(true);
       setActionError("");
@@ -270,7 +317,6 @@ function AdminProducts() {
           });
         } catch (imageError) {
           await loadProducts();
-
           setActionError(
             `Product details were saved, but image upload failed: ${imageError.message}`
           );
@@ -299,11 +345,13 @@ function AdminProducts() {
   }
 
   async function handleDelete(product) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${product.name}"? This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${product.name}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
 
     try {
       setError("");
@@ -322,7 +370,7 @@ function AdminProducts() {
         editingProduct &&
         String(editingProduct.id) === String(product.id)
       ) {
-        setEditingProduct(null);
+        closeEditForm();
       }
     } catch (err) {
       setError(err.message || "Unable to delete the product.");
@@ -350,8 +398,6 @@ function AdminProducts() {
     fontSize: 14,
     marginBottom: 8,
   };
-
-  const busy = saving || imageUploading || imageDeleting;
 
   return (
     <section className="dashboard-content">
@@ -421,10 +467,7 @@ function AdminProducts() {
             <p className="eyebrow">YOUR CATALOGUE</p>
             <h2>All Products</h2>
           </div>
-
-          <span className="period-label">
-            {products.length} products
-          </span>
+          <span className="period-label">{products.length} products</span>
         </div>
 
         <label
@@ -481,7 +524,6 @@ function AdminProducts() {
                   <th style={{ padding: 14 }}>Actions</th>
                 </tr>
               </thead>
-
               <tbody>
                 {filteredProducts.map((product) => {
                   const imageUrl = getProductImage(product);
@@ -532,7 +574,6 @@ function AdminProducts() {
                               <ImageIcon size={22} color="#293cff" />
                             </div>
                           )}
-
                           <span>{product.name}</span>
                         </div>
                       </td>
@@ -589,10 +630,7 @@ function AdminProducts() {
                   <tr>
                     <td
                       colSpan={4}
-                      style={{
-                        padding: "45px 15px",
-                        textAlign: "center",
-                      }}
+                      style={{ padding: "45px 15px", textAlign: "center" }}
                     >
                       <Package size={35} color="#293cff" />
                       <p style={{ fontWeight: 700 }}>
@@ -612,10 +650,7 @@ function AdminProducts() {
       {editingProduct && (
         <div
           onMouseDown={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              !busy
-            ) {
+            if (event.target === event.currentTarget && !busy) {
               closeEditForm();
             }
           }}
@@ -738,16 +773,26 @@ function AdminProducts() {
                 </label>
 
                 <label>
-                  <span style={labelStyle}>Category ID *</span>
-                  <input
+                  <span style={labelStyle}>Category *</span>
+                  <select
                     style={fieldStyle}
                     name="category_id"
-                    type="number"
-                    min="1"
                     value={form.category_id}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  {categories.length === 0 && (
+                    <small style={{ color: "#b42318" }}>
+                      Categories could not be loaded. Check the admin categories API.
+                    </small>
+                  )}
                 </label>
 
                 <label>
@@ -858,13 +903,7 @@ function AdminProducts() {
                             }}
                           >
                             <img
-                              src={
-                                url
-                                  ? /^https?:\/\//i.test(url)
-                                    ? url
-                                    : `http://localhost:3000${url.startsWith("/") ? "" : "/"}${url}`
-                                  : ""
-                              }
+                              src={resolveImageUrl(url)}
                               alt={image.alt_text || form.name}
                               style={{
                                 width: "100%",
@@ -900,7 +939,10 @@ function AdminProducts() {
                                 cursor: busy || !image.id ? "not-allowed" : "pointer",
                               }}
                             >
-                              <Trash2 size={14} style={{ verticalAlign: "middle", marginRight: 5 }} />
+                              <Trash2
+                                size={14}
+                                style={{ verticalAlign: "middle", marginRight: 5 }}
+                              />
                               {imageDeleting ? "Removing..." : "Remove Image"}
                             </button>
                           </div>
