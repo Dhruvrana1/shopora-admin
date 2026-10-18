@@ -1,8 +1,7 @@
-
-const API_BASE_URL =
+const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
-  "https://shopora-backend-h3uj.onrender.com";
-let refreshPromise = null;
+  "https://shopora-backend-h3uj.onrender.com"
+).replace(/\/+$/, "") + "/api";
 
 async function refreshAdminAccessToken() {
   const refreshToken = sessionStorage.getItem(
